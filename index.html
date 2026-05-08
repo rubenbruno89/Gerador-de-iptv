@@ -1,22 +1,147 @@
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Gerador de URL HLS &amp; TS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Gerador IPTV Blindado</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#0f0f0f;
+    color:white;
+    padding:20px;
+}
+h1{
+    text-align:center;
+}
+.container{
+    background:#1b1b1b;
+    padding:15px;
+    margin-bottom:15px;
+    border-radius:10px;
+    position:relative;
+}
+input{
+    width:100%;
+    padding:8px;
+    margin:6px 0;
+    border-radius:6px;
+    border:none;
+}
+button{
+    padding:10px;
+    margin:6px 0;
+    width:100%;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+.add{background:#2ecc71;}
+.generate{background:#3498db;}
+.download{background:#f39c12;}
+.remove{
+    background:#e74c3c;
+    width:auto;
+    padding:5px 10px;
+    position:absolute;
+    right:10px;
+    top:10px;
+}
+textarea{
+    width:100%;
+    height:300px;
+    margin-top:15px;
+    border-radius:10px;
+    padding:10px;
+    font-family: monospace;
+}
+</style>
+</head>
+
+<body>
+
+<h1>GERADOR IPTV BLINDADO</h1>
+
+<div id="channels"></div>
+
+<button class="add" onclick="addChannel()">+ Adicionar Canal</button>
+<button class="generate" onclick="generateList()">GERAR LISTA</button>
+<button class="download" onclick="downloadList()">BAIXAR .M3U8</button>
+
+<textarea id="output" placeholder="Sua lista será gerada aqui..."></textarea>
+
+<script>
+
+let channelCount = 0;
+
+function addChannel() {
+
+    channelCount++;
+
+    let div = document.createElement("div");
+    div.className = "container";
+
+    div.innerHTML = `
+        <button class="remove" onclick="this.parentElement.remove()">X</button>
+        <h3>Canal ${channelCount}</h3>
+
+        <input type="text" placeholder="Nome do Canal" class="name">
+
+        <input type="text" placeholder="Link do Canal (.m3u8 ou .ts) - SERÁ MANTIDO EXATO" class="url">
+
+        <input type="text" placeholder="Link do Logo (opcional)" class="logo">
+
+        <input type="text" placeholder="Grupo (Ex: Filmes, Esporte, Infantil)" class="group">
+
+        <input type="text" placeholder="ID do Canal (opcional)" class="id">
+    `;
+
+    document.getElementById("channels").appendChild(div);
+}
+
+function generateList() {
+
+    let output = "#EXTM3U\n\n";
+
+    let containers = document.querySelectorAll(".container");
+
+    containers.forEach(container => {
+
+        let name = container.querySelector(".name").value.trim();
+        let url = container.querySelector(".url").value.trim();
+        let logo = container.querySelector(".logo").value.trim();
+        let group = container.querySelector(".group").value.trim();
+        let id = container.querySelector(".id").value.trim();
+
+        if(name !== "" && url !== ""){
+
+            output += `#EXTINF:-1 tvg-id="${id}" tvg-name="${name}" tvg-logo="${logo}" group-title="${group}",${name}\n`;
+            output += url + "\n\n";
+        }
+    });
+
+    document.getElementById("output").value = output;
+}
+
+function downloadList(){
+
+    let content = document.getElementById("output").value;
+
+    if(!content){
+        alert("Primeiro gere a lista!");
+        return;
+    }
+
+    let blob = new Blob([content], {type: "text/plain;charset=utf-8;"});
+
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "playlist.m3u8";
+    a.click();
+}
+
+</script>
+
+</body>
 </html>
